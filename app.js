@@ -16,6 +16,7 @@ let hotkeyword = require('./hotkeyword.json')
 const { response } = require('express')
 const bodyParser = require('body-parser')
 const fs = require('fs')
+const e = require('express')
 
 app.use(cors())
 app.use(bodyParser.json())
@@ -98,7 +99,8 @@ app.post('/datachanger', (request, response) => {
   let {
     title,
     subtitle,
-    term,
+    termStart,
+    termEnd,
     state,
     key,
     summary,
@@ -122,7 +124,7 @@ app.post('/datachanger', (request, response) => {
         id: curId,
         title: title,
         subtitle: subtitle,
-        term: term,
+        term: `${termStart} ~ ${termEnd}`,
         state: state,
         key: key,
       }
