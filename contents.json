@@ -3,7 +3,8 @@
     "id": 1,
     "title": "test1",
     "subtitle": "빨강 vs 파랑",
-    "term": "2022-08-02 ~ ",
+    "termStart": "2022-08-02",
+    "termEnd": "",
     "state": "진행 중",
     "key": "색,빨강,파랑"
   },
@@ -11,7 +12,8 @@
     "id": 2,
     "title": "test2",
     "subtitle": "등 vs 가슴",
-    "term": "2022-08-08 ~ ",
+    "termStart": "2022-08-08",
+    "termEnd": "",
     "state": "진행 중",
     "key": "등,가슴,벌크업"
   },
@@ -19,16 +21,81 @@
     "id": 3,
     "title": "test3",
     "subtitle": "우크라 vs 러시아",
-    "term": "2022-03-02 ~ ",
-    "state": "흐지부지..",
+    "termStart": "2022-03-02",
+    "termEnd": "",
+    "state": "진행 중",
     "key": "전쟁,우크라이나,러시아"
   },
   {
     "id": 4,
     "title": "윤강석 구글 입사",
     "subtitle": "윤강석 vs 구글",
-    "term": "2022-07-08 ~ 2022-08-08",
+    "termStart": "2022-07-08",
+    "termEnd": "2022-08-08",
     "state": "ㄹㅇ 끝났나?",
     "key": "구글,윤강석,입사"
+  },
+  {
+    "id": 5,
+    "title": "일하자 민재야",
+    "subtitle": "김민재 vs 세상아",
+    "termStart": "2022-08-17",
+    "termEnd": "",
+    "state": "진행 중",
+    "key": "김민재,세상아,좌파"
+  },
+  {
+    "id": 6,
+    "title": "윤강석 졸업한다",
+    "subtitle": "윤강석 vs 연세대",
+    "termStart": "2022-08-04",
+    "termEnd": "2022-08-17",
+    "state": "ㄹㅇ 끝이다",
+    "key": "윤강석,연세대"
+  },
+  {
+    "id": 7,
+    "title": "정부, 대국민 빚 이자 탕감",
+    "subtitle": "aadad",
+    "termStart": "2022-08-13",
+    "termEnd": "",
+    "state": "진행 중",
+    "key": "정부,대국민,빚,이자,탕감"
+  },
+  {
+    "id": 8,
+    "title": "민재야 아직도 자니",
+    "subtitle": "ㅁㄴ라ㅟ",
+    "termStart": "2022-08-12",
+    "termEnd": "",
+    "state": "진행 중",
+    "key": "김민재,잠"
+  },
+  {
+    "id": 9,
+    "title": "투표하기 전에 생각했나요?",
+    "subtitle": "ㅁㄴㅇㄹ",
+    "termStart": "2022-08-24",
+    "termEnd": "",
+    "state": "진행 중",
+    "key": "투표,생각,제발"
+  },
+  {
+    "id": 10,
+    "title": "test10",
+    "subtitle": "qfkql",
+    "termStart": "2022-08-04",
+    "termEnd": "2022-08-31",
+    "state": "ㄱ뮈ㅏ눌마",
+    "key": "teste,testcase"
+  },
+  {
+    "id": 11,
+    "title": "test4",
+    "subtitle": "fkq l",
+    "termStart": "2022-08-04",
+    "termEnd": "2022-08-23",
+    "state": "그만좀...",
+    "key": "test,testcase"
   }
 ]

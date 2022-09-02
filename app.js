@@ -1,6 +1,5 @@
 const http = require('http')
 const express = require('express')
-const path = require('path')
 const app = express()
 const mysql = require('mysql2')
 const db = require('./models/index.js')
@@ -8,35 +7,36 @@ const keylist = require('./keylist.json')
 const keyCrolling = require('./keycorlling.json')
 const titleIdList = require('./idtitlelist.json')
 const contentState = require('./contentState.json')
+const boxnumberAndIp = require('./boxnumber-ip.json')
+const boxVotedNumber = require('./boxvotednumber.json')
+const keywordExplanationList = require('./keywordexplanation.json')
 const { News } = db
 const cors = require('cors')
 const contents = require('./contents.json')
 const newscontents = require('./newscontents.json')
 let hotkeyword = require('./hotkeyword.json')
-const { response } = require('express')
 const bodyParser = require('body-parser')
 const fs = require('fs')
-const e = require('express')
+const { listenerCount } = require('process')
 
+/** cors, bodyparsing, static data <client image> */
 app.use(cors())
 app.use(bodyParser.json())
+app.use(express.static('staticdata'))
 
+/** Sending client news list with query which is current news number in client  */
 app.get('/defaultcontentdata', (request, response) => {
   const currentNumber = request.query.curnum
   const endNumber = currentNumber + 10
   const contentsContinuing = [...contentState['진행 중']].reverse()
-  const contentsAmiguious = [...contentState['흐지부지..']].reverse()
   const contentsEnd = [...contentState['끝!']].reverse()
-  const totalContentId = [
-    ...contentsContinuing,
-    ...contentsAmiguious,
-    ...contentsEnd,
-  ]
+  const totalContentId = [...contentsContinuing, ...contentsEnd]
   const idToSend = totalContentId.slice(
     currentNumber,
     Math.min(totalContentId.length, endNumber),
   )
-  const contentToSend = []
+  const possibleToSendNext = endNumber >= totalContentId.length ? false : true
+  const contentToSend = [possibleToSendNext]
   idToSend.forEach((id) => {
     contentToSend.push(contents[id - 1])
   })
@@ -44,11 +44,13 @@ app.get('/defaultcontentdata', (request, response) => {
   response.send(contentsJson)
 })
 
+/** Sending key list to clent to use search engine */
 app.get('/keylist', (request, response) => {
   const keylistJson = JSON.stringify(keylist)
   response.send(keylistJson)
 })
 
+/** Sending news list depending on keyword in parameters when client request on search box */
 app.get('/keybox/:keyword', (request, response) => {
   const { keyword } = request.params
   if (keyword in keyCrolling) {
@@ -61,8 +63,6 @@ app.get('/keybox/:keyword', (request, response) => {
       let cur = contents[number - 1]
       if (cur['state'] == '진행 중') {
         continueContents.push(cur)
-      } else if (cur['state'] == '흐지부지..') {
-        ambiguitiousContents.push(cur)
       } else {
         endContents.push(cur)
       }
@@ -74,6 +74,13 @@ app.get('/keybox/:keyword', (request, response) => {
   }
 })
 
+app.get('/keywordExplanation/:keyname', (request, response) => {
+  const { keyname } = request.params
+  const keywordExplanation = keywordExplanationList[keyname]
+  response.send(JSON.stringify(keywordExplanation))
+})
+
+/**  */
 app.get('/newscontent/:id', (request, response) => {
   const { id } = request.params
   let newsToSend
@@ -86,16 +93,23 @@ app.get('/newscontent/:id', (request, response) => {
 })
 
 app.get('/hotkeyword', (request, response) => {
-  response.send(JSON.stringify(hotkeyword))
+  const keylistContinue = []
+  const keylistEnd = []
+  hotkeyword.map((obj) => {
+    if (obj['left'] > 0) {
+      keylistContinue.push({ keyword: obj['keyword'], left: true })
+    } else {
+      keylistEnd.push({ keyword: obj['keyword'], left: false })
+    }
+  })
+  const jsonToSend = [keylistContinue, keylistEnd]
+  response.send(JSON.stringify(jsonToSend))
   console.log('잘 보내진 듯?')
-})
-
-app.listen(3000, () => {
-  console.log('잘 돌아감')
 })
 
 app.post('/datachanger', (request, response) => {
   const requestData = request.body
+  console.log(requestData)
   let {
     title,
     subtitle,
@@ -124,26 +138,23 @@ app.post('/datachanger', (request, response) => {
         id: curId,
         title: title,
         subtitle: subtitle,
-        term: `${termStart} ~ ${termEnd}`,
+        termStart: termStart,
+        termEnd: termEnd,
         state: state,
         key: key,
       }
-      const newLinkList = linkList.map((list) => {
-        return [list[0], list[1]]
-      })
       const newNewsContent = {
         id: curId,
         title: title,
         summary: summary,
         A: aComment,
         B: bComment,
-        linkList: newLinkList,
+        linkList: linkList,
       }
       titleIdList.push(newIdTitle)
       fs.writeFileSync('./idtitlelist.json', JSON.stringify(titleIdList))
 
-      const currentState =
-        state != '진행 중' && state != '흐지부지..' ? '끝!' : state
+      const currentState = state != '진행 중' ? '끝!' : state
       contents.push(newContent)
       contentState[currentState].push(curId)
       fs.writeFileSync('./contents.json', JSON.stringify(contents))
@@ -164,6 +175,9 @@ app.post('/datachanger', (request, response) => {
       })
       fs.writeFileSync('./keycorlling.json', JSON.stringify(keyCrolling))
       fs.writeFileSync('./keylist.json', JSON.stringify(keylist))
+
+      boxVotedNumber[curId] = [1, 1]
+      boxnumberAndIp[curId] = new Set()
       response.send('good')
     } catch (e) {
       response.send('문제 있음')
@@ -201,17 +215,26 @@ app.get('/contentstorevise/title/:valueToRevise', (request, response) => {
 
 app.post('/contentstorevise', (request, response) => {
   const requestData = request.body
-  const { id, title, subtitle, term, state, key } = requestData
+  const {
+    id,
+    title,
+    subtitle,
+    termStart,
+    termEnd,
+    state,
+    key,
+    newsSummary,
+    aComment,
+    bComment,
+    linkList,
+  } = requestData
   const beforecontent = { ...contents[id - 1] }
+  const newsContentToRevise = newscontents[id - 1]
   contents[id - 1] = requestData
   if (beforecontent['state'] != state) {
     beforestate = beforecontent['state']
-    const beforeStateToFind =
-      beforestate != '진행 중' && beforestate != '흐지부지..'
-        ? '끝!'
-        : beforestate
-    const stateToFind =
-      state != '진행 중' && state != '흐지부지..' ? '끝!' : state
+    const beforeStateToFind = beforestate != '진행 중' ? '끝!' : beforestate
+    const stateToFind = state != '진행 중' ? '끝!' : state
     if (beforeStateToFind !== stateToFind) {
       ;(contentState[beforeStateToFind] = contentState[
         beforeStateToFind
@@ -238,7 +261,53 @@ app.post('/contentstorevise', (request, response) => {
     fs.writeFileSync('./keycorlling.json', JSON.stringify(keyCrolling))
   }
   fs.writeFileSync('./contents.json', JSON.stringify(contents))
+  newsContentToRevise['A'] = aComment
+  newsContentToRevise['B'] = bComment
+  newsContentToRevise['summary'] = newsSummary
+  newsContentToRevise['linkList'] = linkList
   response.send('잘 됨')
 })
 
-app.get('/')
+app.get('/checkIpVoted', (request, response) => {
+  const { ip, boxNumber } = request.query
+  console.log(boxNumber)
+  const [leftVoted, rightVoted] = boxVotedNumber[boxNumber]
+  if (ip in boxnumberAndIp[boxNumber]) {
+    const jsonToSend = {
+      voted: boxnumberAndIp[boxNumber][ip],
+      leftVoted: leftVoted,
+      rightVoted: rightVoted,
+    }
+    response.send(JSON.stringify(jsonToSend))
+  } else {
+    const jsonToSend = {
+      voted: false,
+      leftVoted: leftVoted,
+      rightVoted: rightVoted,
+    }
+    response.send(JSON.stringify(jsonToSend))
+  }
+})
+
+app.post('/addVotingIp', (request, response) => {
+  const { ip, part, boxNumber } = request.body
+  console.log(ip)
+  if (ip in boxnumberAndIp[boxNumber]) {
+    response.send('false')
+  } else {
+    boxnumberAndIp[boxNumber][ip] = part
+    const index = part === 'left' ? 0 : 1
+    boxVotedNumber[boxNumber][index] += 1
+    response.send('true')
+  }
+  fs.writeFileSync('./boxnumber-ip.json', JSON.stringify(boxnumberAndIp))
+  fs.writeFileSync('./boxvotednumber.json', JSON.stringify(boxVotedNumber))
+})
+
+app.get('/getimage', (request, response) => {
+  response.sendFile('/Users/yungangseog/Desktop/project_server/screenshot.png')
+})
+
+app.listen(3000, () => {
+  console.log('돌아가는 중')
+})

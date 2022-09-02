@@ -1,7 +1,14 @@
 [
-  { "keyword": "비건", "index": 1 },
-  { "keyword": "번리", "index": 2 },
-  { "keyword": "갈등의 주체", "index": 3 },
-  { "keyword": "어렵다", "index": 4 },
-  { "keyword": "흐", "index": 5 }
+  { "keyword": "김민재", "left": 2 },
+  { "keyword": "윤강석", "left": 0 },
+  { "keyword": "test", "left": 1 },
+  { "keyword": "연세대", "left": 0 },
+  { "keyword": "대국민", "left": 1 },
+  { "keyword": "파랑", "left": 1 },
+  { "keyword": "빨강", "left": 1 },
+  { "keyword": "투표", "left": 1 },
+  { "keyword": "testcase", "left": 1 },
+  { "keyword": "teste", "left": 0 },
+  { "keyword": "구글", "left": 0 },
+  { "keyword": "생각", "left": 1 }
 ]
